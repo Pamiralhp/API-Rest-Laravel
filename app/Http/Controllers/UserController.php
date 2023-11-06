@@ -162,14 +162,31 @@ class UserController extends Controller
 
     public function ranking(){
     
-        $totalGames = Game::count(); 
-        $gamesWon = Game::where('result', true)->count(); 
+        $players = User::whereHas('roles', function ($query) {
+            $query->where('name', 'player');
+        })->withCount(['games', 'games as wins_count' => function ($query) {
+            $query->where('result', true);
+        }])->get();
+    
+        if ($players->isEmpty()) {
+            return response()->json(['message' => 'There are no players'], 404);
+        }
+    
+        $playersData = $players->map(function ($player) {
+            $game_won = $player->wins_count;
+            $wins_rate = $player->games_count ? round(($game_won / $player->games_count) * 100, 2) : 0;
+    
+            return [
+                'name' => $player->name,
+                'Wins rate' => $wins_rate,
+                'Wins' => $game_won,
+                'Total Games' => $player->games_count
+            ];
+        });
 
-        $rank= $totalGames > 0 ? ($gamesWon / $totalGames) * 100 : 0;
-
-        return response()->json([
-            'Total games' => $totalGames, 'All players games rate' => round($rank,2)
-        ], 200);
+        $ranking = $playersData->sortByDesc('Wins');
+    
+        return response()->json($ranking->values()->all(), 200);
     }
 
     public function winner() {

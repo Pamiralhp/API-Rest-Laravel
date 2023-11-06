@@ -21,8 +21,8 @@ Route::middleware('auth:api')->group(function () {
     
     Route::middleware('role:player')->group(function () {
         Route::put('/players/{id}', [UserController::class, 'update']); // Update player name
-        Route::post('/players/{id}/play', [GameController::class, 'throwDice']); // Player makes a move
-        Route::delete('/players/{id}/delete', [GameController::class, 'destroy']); // Delete all moves for player X
+        Route::post('/players/{id}/games/', [GameController::class, 'throwDice']); // Player makes a move
+        Route::delete('/players/{id}/games', [GameController::class, 'destroy']); // Delete all moves for player X
         Route::get('/players/{id}/games', [GameController::class, 'listGames']); // List moves for player X
     });
 
